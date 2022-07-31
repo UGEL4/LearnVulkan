@@ -69,6 +69,11 @@ private:
 
 	void CreateGraphicsPipeline();
 	VkShaderModule CreateShaderModule(const std::vector<char>& shaderCode) const;
+	void CreateRenderPass();
+
+	void CreateFrameBuffer();
+	void CreateCommandPool();
+	void CreateCommandBuffers();
 private:
 	int mWinWidth;
 	int mWinHeight;
@@ -87,8 +92,14 @@ private:
 	VkExtent2D mSwapChainImageExtent;
 	std::vector<VkImageView> mSwapChainImageViews;
 
-	VkShaderModule m_pVertexShaderModule;
-	VkShaderModule m_pFragmentShaderModule;
+	VkRenderPass m_pRenderPass;
+	VkPipelineLayout m_pPipelineLayout;
+	VkPipeline m_pPipeline;
+
+	std::vector<VkFramebuffer> mFrameBuffers;
+
+	VkCommandPool m_pCommandPool;
+	std::vector<VkCommandBuffer> mCommandBuffers;
 };
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
