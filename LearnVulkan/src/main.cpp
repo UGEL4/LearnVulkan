@@ -3,7 +3,7 @@
 
 int main()
 {
-	VulkanApp app("Vulkan App", 800, 600);
+	VulkanApp app("Vulkan App", 800, 800);
 	app.Run();
 
 	return 0;
