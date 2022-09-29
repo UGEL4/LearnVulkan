@@ -1,6 +1,7 @@
 #pragma once
 
 #define GLFW_INCLUDE_VULKAN
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <GLFW/glfw3.h>
 #include <string_view>
 #include <string>
@@ -30,8 +31,9 @@ struct SwapChainSupportDetails
 
 struct VertexData
 {
-	glm::vec2 position;
+	glm::vec3 position;
 	glm::vec3 color;
+	glm::vec2 texCoord;
 
 	static VkVertexInputBindingDescription GetBindingDescription()
 	{
@@ -45,12 +47,12 @@ struct VertexData
 
 	static std::vector<VkVertexInputAttributeDescription> GetVertexInputAttributeDescriptions()
 	{
-		std::vector<VkVertexInputAttributeDescription> descs(2);
+		std::vector<VkVertexInputAttributeDescription> descs(3);
 		VkVertexInputAttributeDescription attributeDesc = {};
 		descs[0].location = 0;
 		descs[0].binding = 0;
 		descs[0].offset = offsetof(VertexData, position);
-		descs[0].format = VK_FORMAT_R32G32_SFLOAT;
+		descs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 		//descs.emplace_back(attributeDesc);
 
 		descs[1].location = 1;
@@ -58,6 +60,11 @@ struct VertexData
 		descs[1].offset = offsetof(VertexData, color);
 		descs[1].format = VK_FORMAT_R32G32B32_SFLOAT;
 		//descs.emplace_back(attributeDesc);
+
+		descs[2].location = 2;
+		descs[2].binding = 0;
+		descs[2].offset = offsetof(VertexData, texCoord);
+		descs[2].format = VK_FORMAT_R32G32_SFLOAT;
 
 		return descs;
 	}
@@ -138,6 +145,26 @@ private:
 	void CreateDescriptorPool();
 	void CreateDescriptorSets();
 
+	//图像
+	void CreateTextureImage();
+	void CreateImage(uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevels,
+		VkImageType imageType, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage,
+		VkMemoryPropertyFlags propertie, VkImage& pImage, VkDeviceMemory& pMemory);
+	void GenerateMipmaps(VkImage pImage, uint32_t width, uint32_t height, uint32_t mipLevels);
+	void TransitionImageLayout(VkImage pImage, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
+	void CopyBufferToImage(VkBuffer pBuffer, VkImage pImage, uint32_t width, uint32_t height);
+	void CreateTextureImageView();
+	void CreateImageView(VkImage pImage, VkImageView& pImageView, VkFormat format, VkImageAspectFlags aspectMask, uint32_t mipLevels);
+	void CreateTextureSampler();
+
+	VkCommandBuffer BeginSingleTimeCommands();
+	void EndSingleTimeCommands(VkCommandBuffer pCommandBuffer);
+
+	void CreateDepthResource();
+	VkFormat FindDepthFormat();
+	VkFormat FindSupportFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+	bool HasStencilComponent(VkFormat format);
+
 private:
 	int mWinWidth;
 	int mWinHeight;
@@ -182,6 +209,16 @@ private:
 
 	VkDescriptorPool m_pDescriptorPool;
 	std::vector<VkDescriptorSet> mDescriptorSets;//描述符集对象会在描述符池对象清除时自动被清除
+
+	uint32_t mMipLevels;
+	VkImage m_pTextureImage;
+	VkDeviceMemory m_pTextureImageMemory;
+	VkImageView m_pTextureImageView;
+	VkSampler m_pTextureSampler;
+
+	VkImage m_pDepthImage;
+	VkDeviceMemory m_pDepthImageMemory;
+	VkImageView m_pDepthImageView;
 };
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
