@@ -77,6 +77,17 @@ struct UniformBufferObj
 	glm::mat4 proj;
 };
 
+struct CompositionUbo
+{
+
+};
+
+struct UinformBuffer
+{
+	VkBuffer pBuffer;
+	VkDeviceMemory pMem;
+};
+
 class VulkanApp
 {
 public:
@@ -165,6 +176,27 @@ private:
 	VkFormat FindSupportFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 	bool HasStencilComponent(VkFormat format);
 
+	struct FrameBufferAttachment
+	{
+		VkImage			pImage;
+		VkImageView		pImageView;
+		VkDeviceMemory	pMemory;
+		VkFormat		format;
+	};
+
+	struct FrameBuffer
+	{
+		uint32_t width, height;
+		VkFramebuffer pFrameBuffer;
+		VkRenderPass pRenderPass;
+		std::vector<FrameBufferAttachment> attachments;
+	};
+	void PrepareOffscreenFrameBuffer();
+	void OffscreenUniformBuffer();
+	void UpdateOffscreenUniformBuffer();
+	void BuildDeferredCommandBuffer();
+	void BuildCommandBuffers();
+	void CreateDeferrdPipeline();
 private:
 	int mWinWidth;
 	int mWinHeight;
@@ -219,6 +251,14 @@ private:
 	VkImage m_pDepthImage;
 	VkDeviceMemory m_pDepthImageMemory;
 	VkImageView m_pDepthImageView;
+
+	FrameBuffer mOffscreenFrameBuffer;
+	// One sampler for the frame buffer color attachments
+	VkSampler pColorSampler;
+	UinformBuffer mOffscreenUbo;
+	VkDescriptorSet m_pDeferredSet;// Deferred composition
+	VkCommandBuffer m_pOffscreenCmdBuffer;
+	VkSemaphore m_pOffscreenSemaphore;
 };
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
